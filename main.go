@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
 	"os"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/Pungyeon/golang-auth0-example/handlers"
-	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -19,13 +19,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	r := mux.NewRouter()
-	r.HandleFunc("/", handlers.IndexHandler)
-	r.HandleFunc("/callback", handlers.CallbackHandler)
-	r.HandleFunc("/user", handlers.UserHandler)
-	r.HandleFunc("/login", handlers.LoginHandler)
+	r := gin.Default()
 
-	err := http.ListenAndServe(":3000", r)
+	// r := mux.NewRouter()
+	r.GET("/", handlers.IndexHandler)
+	r.GET("/callback", handlers.CallbackHandler)
+	r.GET("/user", handlers.UserHandler)
+	r.GET("/login", handlers.LoginHandler)
+
+	err := r.Run(":3000")
 	if err != nil {
 		panic(err)
 	}

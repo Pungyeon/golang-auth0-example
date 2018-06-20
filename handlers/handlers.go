@@ -11,32 +11,33 @@ import (
 	"os"
 
 	"github.com/Pungyeon/golang-auth0-example/app"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
 )
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(struct{ Message string }{Message: "Welcome to the auth service."})
+func IndexHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"Message": "Welcome to the auth service."})
 }
 
-// IndexHandler will provide the information for our index endpoint
-func CallbackHandler(w http.ResponseWriter, r *http.Request) {
-	state := r.URL.Query().Get("state")
-	session, err := app.Store().Get(r, "state")
+func CallbackHandler(c *gin.Context) {
+	// state := r.URL.Query().Get("state")
+	state := c.Query("state")
+	session, err := app.Store().Get(c.Request, "state")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if state != session.Values["state"] {
-		http.Error(w, "Invalid state parameter", http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	code := r.URL.Query().Get("code")
+	code := c.Query("code")
 
 	token, err := app.Config().Exchange(context.TODO(), code)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -44,7 +45,7 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	client := app.Config().Client(context.TODO(), token)
 	resp, err := client.Get(app.Audience())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -52,63 +53,65 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	var profile map[string]interface{}
 	if err = json.NewDecoder(resp.Body).Decode(&profile); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	session, err = app.Store().Get(r, "auth-session")
+	session, err = app.Store().Get(c.Request, "auth-session")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	session.Values["id_token"] = token.Extra("id_token")
 	session.Values["access_token"] = token.AccessToken
 	session.Values["profile"] = profile
-	err = session.Save(r, w)
+	err = session.Save(c.Request, c.Writer)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	// Redirect to logged in page
-	http.Redirect(w, r, "/user", http.StatusSeeOther)
+	// http.Redirect(c.Writer, c.Request, "/user", http.StatusSeeOther)
+	c.Redirect(http.StatusSeeOther, "/user")
 }
 
 // LoginHandler will redirect a HTTP request to the Auth0
 // login page, which was setup previously.
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
+func LoginHandler(c *gin.Context) {
 	b := make([]byte, 32)
 	rand.Read(b)
 	state := base64.StdEncoding.EncodeToString(b)
 
-	session, err := app.Store().Get(r, "state")
+	session, err := app.Store().Get(c.Request, "state")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 	session.Values["state"] = state
-	err = session.Save(r, w)
+	err = session.Save(c.Request, c.Writer)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	audience := oauth2.SetAuthURLParam("audience", app.Audience())
 	url := app.Config().AuthCodeURL(state, audience)
 
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	// http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 // LogoutHandler will ensure that client is logged out, via
 // the Auth0 authorization backend
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+func LogoutHandler(c *gin.Context) {
 	domain := os.Getenv("AUTH0_DOMAIN")
 
 	var URL *url.URL
 	URL, err := url.Parse("https://" + domain)
 	if err != nil {
-		http.Error(w, "could not parse: https://"+domain, http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, "could not parse: https://"+domain)
 		return
 	}
 
@@ -118,19 +121,21 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	parameters.Add("client_id", app.Config().ClientID)
 	URL.RawQuery = parameters.Encode()
 
-	http.Redirect(w, r, URL.String(), http.StatusTemporaryRedirect)
+	// http.Redirect(w, r, URL.String(), http.StatusTemporaryRedirect)
+	c.Redirect(http.StatusTemporaryRedirect, URL.String())
 }
 
 // UserHandler will provide information on current user.
-func UserHandler(w http.ResponseWriter, r *http.Request) {
+func UserHandler(c *gin.Context) {
 
-	session, err := app.Store().Get(r, "auth-session")
+	session, err := app.Store().Get(c.Request, "auth-session")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	fmt.Println(session)
 	fmt.Println(session.Values["profile"])
-	json.NewEncoder(w).Encode(session.Values["profile"])
+	c.JSON(http.StatusOK, session.Values["profile"])
+	// json.NewEncoder(w).Encode(session.Values["profile"])
 }
