@@ -26,6 +26,7 @@ func main() {
 	r.GET("/callback", handlers.CallbackHandler)
 	r.GET("/user", handlers.UserHandler)
 	r.GET("/login", handlers.LoginHandler)
+	r.GET("/check-auth", handlers.CheckAuthHandler)
 
 	err := r.Run(":3000")
 	if err != nil {
