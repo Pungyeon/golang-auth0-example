@@ -7,12 +7,17 @@ export class AuthService {
     constructor(private httpClient: HttpClient)  {}
 
     isAuthorized() {
-        this.httpClient.get(environment + "/auth/check-auth").subscribe((data) => {
+        this.httpClient.get(environment.gateway + "/auth/check-auth").subscribe((data) => {
             console.log(data);
             return true;
         }, (err: HttpErrorResponse) => {
+            console.log("USER NOT AUTHORIZED");
             console.log(err);
             return false;
         })
+    }
+
+    AuthOK() {
+        return this.httpClient.get(environment.gateway + "/auth/check-auth")
     }
 }

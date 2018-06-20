@@ -154,7 +154,7 @@ func LogoutHandler(c *gin.Context) {
 
 	URL.Path += "/v2/logout"
 	parameters := url.Values{}
-	parameters.Add("returnTo", "http://localhost:3000")
+	parameters.Add("returnTo", "http://localhost:3000") // TODO: make this a dynamic assignment, via. AUTH0_CALLBACK_ADDRESS or similar
 	parameters.Add("client_id", app.Config().ClientID)
 	URL.RawQuery = parameters.Encode()
 

@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 
@@ -21,9 +23,15 @@ func main() {
 
 	r := gin.Default()
 
-	// r.Use(static.Serve("/", static.LocalFile("ui/dist/ui/index.html", false)))
-	// r.NoMethod(static.Serve("", static.LocalFile("ui/dist/ui/index.html", false)))
-	r.StaticFile("/", "./ui/dist/ui/index.html")
+	r.NoRoute(func(c *gin.Context) {
+		dir, file := path.Split(c.Request.RequestURI)
+		ext := filepath.Ext(file)
+		if file == "" || ext == "" {
+			c.File("./ui/dist/ui/index.html")
+		} else {
+			c.File("./ui/dist/ui/" + path.Join(dir, file))
+		}
+	})
 
 	// r := mux.NewRouter()
 	r.GET("/auth/", handlers.IndexHandler)
