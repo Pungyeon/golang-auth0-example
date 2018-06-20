@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule } from '@angular/common/http';
+import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
@@ -17,6 +18,7 @@ import { AuthService } from './service/auth.service';
     UserComponent
   ],
   imports: [
+    NgbModule.forRoot(),
     AppRoutingModule,
     BrowserModule,
     HttpClientModule
