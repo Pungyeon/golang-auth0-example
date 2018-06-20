@@ -42,7 +42,6 @@ func LoginHandler(c *gin.Context) {
 	audience := oauth2.SetAuthURLParam("audience", app.Audience())
 	url := app.Config().AuthCodeURL(state, audience)
 
-	// http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
@@ -103,8 +102,6 @@ func CallbackHandler(c *gin.Context) {
 		return
 	}
 
-	// Redirect to logged in page
-	// http.Redirect(c.Writer, c.Request, "/user", http.StatusSeeOther)
 	c.Redirect(http.StatusSeeOther, "/user")
 }
 
@@ -120,7 +117,6 @@ func UserHandler(c *gin.Context) {
 	fmt.Println(session)
 	fmt.Println(session.Values["profile"])
 	c.JSON(http.StatusOK, session.Values["profile"])
-	// json.NewEncoder(w).Encode(session.Values["profile"])
 }
 
 // CheckAuthHandler will, based on the cookie attached to the request,
@@ -158,7 +154,6 @@ func LogoutHandler(c *gin.Context) {
 	parameters.Add("client_id", app.Config().ClientID)
 	URL.RawQuery = parameters.Encode()
 
-	// http.Redirect(w, r, URL.String(), http.StatusTemporaryRedirect)
 	fmt.Println(URL.String())
 	c.Redirect(http.StatusTemporaryRedirect, URL.String())
 }
