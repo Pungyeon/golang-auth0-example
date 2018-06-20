@@ -21,12 +21,16 @@ func main() {
 
 	r := gin.Default()
 
+	// r.Use(static.Serve("/", static.LocalFile("ui/dist/ui/index.html", false)))
+	// r.NoMethod(static.Serve("", static.LocalFile("ui/dist/ui/index.html", false)))
+	r.StaticFile("/", "./ui/dist/ui/index.html")
+
 	// r := mux.NewRouter()
-	r.GET("/", handlers.IndexHandler)
-	r.GET("/callback", handlers.CallbackHandler)
-	r.GET("/user", handlers.UserHandler)
-	r.GET("/login", handlers.LoginHandler)
-	r.GET("/check-auth", handlers.CheckAuthHandler)
+	r.GET("/auth/", handlers.IndexHandler)
+	r.GET("/auth/callback", handlers.CallbackHandler)
+	r.GET("/auth/user", handlers.UserHandler)
+	r.GET("/auth/login", handlers.LoginHandler)
+	r.GET("/auth/check-auth", handlers.CheckAuthHandler)
 
 	err := r.Run(":3000")
 	if err != nil {
