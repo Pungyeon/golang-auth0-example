@@ -2,14 +2,26 @@ package main
 
 import (
 	"net/http"
+	"flag"
+	"os"
+	"fmt"
 
-	"github.com/Pungyeon/go-test/handlers"
+	"github.com/Pungyeon/golang-auth0-example/handlers"
 	"github.com/gorilla/mux"
 )
 
 func main() {
+	usageFlag := flag.Bool("h", false, "[bool] show usage")
+	flag.Parse()
+
+	if *usageFlag {
+		usage()
+		os.Exit(1)
+	}
+
 	r := mux.NewRouter()
 	r.HandleFunc("/", handlers.IndexHandler)
+	r.HandleFunc("/callback", handlers.CallbackHandler)
 	r.HandleFunc("/user", handlers.UserHandler)
 	r.HandleFunc("/login", handlers.LoginHandler)
 
@@ -17,4 +29,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func usage() {
+	fmt.Printf(`
+		The following environment variables are required:
+		AUTH0_COOKIE_SECRET
+		AUTH0_DOMAIN
+		AUTH0_CLIENT_ID
+		AUTH0_CLIENT_SECRET
+		AUTH0_CALLBACK_URL
+	`)
 }

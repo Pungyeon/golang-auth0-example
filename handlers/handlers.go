@@ -8,13 +8,16 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Pungyeon/go-test/app"
+	"github.com/Pungyeon/golang-auth0-example/app"
 	"golang.org/x/oauth2"
 )
 
-// IndexHandler will provide the information for our index endpoint
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(struct{ Message string}{ Message: "Welcome to the auth service."})
+}
 
+// IndexHandler will provide the information for our index endpoint
+func CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	state := r.URL.Query().Get("state")
 	session, err := app.Store().Get(r, "state")
 	if err != nil {
