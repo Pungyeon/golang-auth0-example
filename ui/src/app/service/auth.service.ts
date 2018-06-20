@@ -10,9 +10,7 @@ export class AuthService {
         this.httpClient.get(environment.gateway + "/auth/check-auth").subscribe((data) => {
             console.log(data);
             return true;
-        }, (err: HttpErrorResponse) => {
-            console.log("USER NOT AUTHORIZED");
-            console.log(err);
+        }, (err) => {
             return false;
         })
     }
