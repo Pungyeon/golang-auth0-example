@@ -10,21 +10,29 @@ import { Router } from '@angular/router';
 })
 export class UserComponent implements OnInit {
 
-  public user;
+  public user: User = {
+    username: "",
+    picture: "",
+    nickname: "",
+    updated_at: ""
+  };
 
   constructor(private httpClient: HttpClient, private router: Router) { }
 
   ngOnInit() {
-    this.httpClient.get(environment.gateway + "/auth/user").subscribe((data) => {
+    this.httpClient.get(environment.gateway + "/auth/user").subscribe((data: User) => {
       this.user = data;
     });
   }
 
   onLogout() {
-    this.httpClient.get(environment.gateway + '/auth/logout').subscribe((data) => {
-      console.log(data);
-      this.router.navigate(['/home']);
-    });
+    window.location.href = environment.gateway + "/auth/logout";
   }
+}
 
+class User {
+  username: string;
+  picture: string;
+  nickname: string;
+  updated_at: string;
 }

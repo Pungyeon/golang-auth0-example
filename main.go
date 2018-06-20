@@ -39,6 +39,7 @@ func main() {
 	r.GET("/auth/user", handlers.UserHandler)
 	r.GET("/auth/login", handlers.LoginHandler)
 	r.GET("/auth/check-auth", handlers.CheckAuthHandler)
+	r.GET("/auth/logout", handlers.LogoutHandler)
 
 	err := r.Run(":3000")
 	if err != nil {
