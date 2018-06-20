@@ -1,10 +1,10 @@
 package main
 
 import (
-	"net/http"
 	"flag"
-	"os"
 	"fmt"
+	"net/http"
+	"os"
 
 	"github.com/Pungyeon/golang-auth0-example/handlers"
 	"github.com/gorilla/mux"

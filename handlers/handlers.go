@@ -7,13 +7,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 
 	"github.com/Pungyeon/golang-auth0-example/app"
 	"golang.org/x/oauth2"
 )
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(struct{ Message string}{ Message: "Welcome to the auth service."})
+	json.NewEncoder(w).Encode(struct{ Message string }{Message: "Welcome to the auth service."})
 }
 
 // IndexHandler will provide the information for our index endpoint
@@ -96,6 +98,27 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	url := app.Config().AuthCodeURL(state, audience)
 
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+
+// LogoutHandler will ensure that client is logged out, via
+// the Auth0 authorization backend
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	domain := os.Getenv("AUTH0_DOMAIN")
+
+	var URL *url.URL
+	URL, err := url.Parse("https://" + domain)
+	if err != nil {
+		http.Error(w, "could not parse: https://"+domain, http.StatusInternalServerError)
+		return
+	}
+
+	URL.Path += "/v2/logout"
+	parameters := url.Values{}
+	parameters.Add("returnTo", "http://localhost:3000")
+	parameters.Add("client_id", app.Config().ClientID)
+	URL.RawQuery = parameters.Encode()
+
+	http.Redirect(w, r, URL.String(), http.StatusTemporaryRedirect)
 }
 
 // UserHandler will provide information on current user.
