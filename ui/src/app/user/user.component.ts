@@ -27,6 +27,8 @@ export class UserComponent implements OnInit {
 
   onLogout() {
     window.location.href = environment.gateway + "/auth/logout";
+    document.cookie = 'state=; Max-Age=0';
+    document.cookie = 'auth-session=; Max-Age=0';
   }
 }
 

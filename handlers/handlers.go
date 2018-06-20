@@ -159,5 +159,6 @@ func LogoutHandler(c *gin.Context) {
 	URL.RawQuery = parameters.Encode()
 
 	// http.Redirect(w, r, URL.String(), http.StatusTemporaryRedirect)
+	fmt.Println(URL.String())
 	c.Redirect(http.StatusTemporaryRedirect, URL.String())
 }
