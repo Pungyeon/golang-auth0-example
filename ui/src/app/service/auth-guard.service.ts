@@ -10,10 +10,17 @@ import { Observable } from "rxjs";
 export class AuthGuardService implements CanActivate {
     constructor(private auth: AuthService, private router: Router) {}
 
-    canActivate(): Observable<boolean> {
-        return new Observable<boolean>((observer) =>
+    canActivate(): boolean {
+        if (this.auth.isAuthenticated()) {
+            return true;
+        }
+
+        this.router.navigate(['/auth/login']);
+        /* return new Observable<boolean>((observer) =>
         {
-            this.auth.AuthOK().toPromise().then((data) => {
+            
+
+           this.auth.AuthOK().toPromise().then((data) => {
                 observer.next(true);
                 observer.complete();
             }).catch((err) => {
@@ -26,6 +33,6 @@ export class AuthGuardService implements CanActivate {
                 observer.next(false);
                 observer.complete();
             });
-        });
+        }); */
     }
 }

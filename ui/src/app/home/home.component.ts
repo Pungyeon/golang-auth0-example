@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
+import { AuthService } from '../service/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -9,21 +10,12 @@ import { environment } from 'src/environments/environment';
 })
 export class HomeComponent implements OnInit {
 
-  constructor(private router: Router) { }
+  constructor(private auth: AuthService) { }
 
   ngOnInit() {
   }
 
   onLogin() {
-    const redirectUrl = environment.gateway + '/auth/login';
-    if (environment.gateway === "") {
-        this.router.navigate(['/auth/login']);   
-    } else {
-        window.location.href = redirectUrl;
-    }
-  }
-
-  onUserDetails() {
-    this.router.navigate(['/user']);   
+    this.auth.login();
   }
 }

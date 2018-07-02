@@ -1,13 +1,15 @@
 import { HomeComponent } from "./home/home.component";
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from "@angular/core";
-import { UserComponent } from "./user/user.component";
 import { AuthGuardService } from "./service/auth-guard.service";
+import { CallbackComponent } from "./callback/callback.component";
+import { ChatComponent } from "src/app/chat/chat.component";
 
 const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
     { path: 'home', component: HomeComponent },
-    { path: 'user', component: UserComponent, canActivate: [AuthGuardService] }
+    { path: 'chat', component: ChatComponent, canActivate: [AuthGuardService] },
+    { path: 'callback', component: CallbackComponent }
   ];
   
   @NgModule({
