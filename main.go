@@ -1,9 +1,6 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"os"
 	"path"
 	"path/filepath"
 
@@ -13,16 +10,9 @@ import (
 )
 
 func main() {
-	usageFlag := flag.Bool("h", false, "[bool] show usage")
-	flag.Parse()
-
-	if *usageFlag {
-		usage()
-		os.Exit(1)
-	}
-
 	r := gin.Default()
 
+	// This will ensure that the angular files are served correctly
 	r.NoRoute(func(c *gin.Context) {
 		dir, file := path.Split(c.Request.RequestURI)
 		ext := filepath.Ext(file)
@@ -33,26 +23,12 @@ func main() {
 		}
 	})
 
-	r.GET("/auth/", handlers.IndexHandler)
-	r.GET("/auth/callback", handlers.CallbackHandler)
-	r.GET("/auth/user", handlers.UserHandler)
-	r.GET("/auth/login", handlers.LoginHandler)
-	r.GET("/auth/check-auth", handlers.CheckAuthHandler)
-	r.GET("/auth/logout", handlers.LogoutHandler)
+	r.GET("/chat", handlers.GetChat)
+	r.POST("/chat", handlers.SendChat)
+	r.GET("/all", handlers.AllRooms)
 
 	err := r.Run(":3000")
 	if err != nil {
 		panic(err)
 	}
-}
-
-func usage() {
-	fmt.Printf(`
-The following environment variables are required:
-	AUTH0_COOKIE_SECRET
-	AUTH0_DOMAIN
-	AUTH0_CLIENT_ID
-	AUTH0_CLIENT_SECRET
-	AUTH0_CALLBACK_URL
-	`)
 }
