@@ -2,44 +2,71 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/Pungyeon/golang-auth0-example/chat"
+	"github.com/Pungyeon/golang-auth0-example/todo"
 	"github.com/gin-gonic/gin"
 )
 
-func AllRooms(c *gin.Context) {
-	c.JSON(http.StatusOK, chat.GetRooms())
+// GetTodoListHandler returns all current todo items
+func GetTodoListHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, todo.Get())
 }
 
-// GetChat will respond with all recorded chat messages
-func GetChat(c *gin.Context) {
-	roomName := c.Query("room")
-	if roomName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "room name not specified, please specify a room name"})
+// AddTodoHandler adds a new todo to the todo list
+func AddTodoHandler(c *gin.Context) {
+	todoItem, statusCode, err := convertHTTPBodyToTodo(c.Request.Body)
+	if err != nil {
+		c.JSON(statusCode, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, chat.GetRoom(roomName))
+	c.JSON(statusCode, gin.H{"id": todo.Add(todoItem.Message)})
 }
 
-// SendChat will add a new chat messages to the chat
-func SendChat(c *gin.Context) {
-	body, err := ioutil.ReadAll(c.Request.Body)
+// DeleteTodoHandler will delete a specified todo based on user http input
+func DeleteTodoHandler(c *gin.Context) {
+	todoItem, statusCode, err := convertHTTPBodyToTodo(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(statusCode, err)
 		return
 	}
-	defer c.Request.Body.Close()
-
-	var message chat.Message
-	err = json.Unmarshal(body, &message)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
+	if todo.Delete(todoItem.ID) != nil {
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
+	c.JSON(http.StatusOK, "")
+}
 
-	chat.GetRoom(message.Room).AddMessage(message)
-	c.JSON(http.StatusOK, chat.GetRooms())
+// CompleteTodoHandler will complete a specified todo based on user http input
+func CompleteTodoHandler(c *gin.Context) {
+	todoItem, statusCode, err := convertHTTPBodyToTodo(c.Request.Body)
+	if err != nil {
+		c.JSON(statusCode, err)
+		return
+	}
+	if todo.Complete(todoItem.ID) != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, "")
+}
+
+func convertHTTPBodyToTodo(httpBody io.ReadCloser) (todo.Todo, int, error) {
+	body, err := ioutil.ReadAll(httpBody)
+	if err != nil {
+		return todo.Todo{}, http.StatusInternalServerError, err
+	}
+	defer httpBody.Close()
+	return convertJSONBodyToTodo(body)
+}
+
+func convertJSONBodyToTodo(jsonBody []byte) (todo.Todo, int, error) {
+	var todoItem todo.Todo
+	err := json.Unmarshal(jsonBody, &todoItem)
+	if err != nil {
+		return todo.Todo{}, http.StatusBadRequest, err
+	}
+	return todoItem, http.StatusOK, nil
 }

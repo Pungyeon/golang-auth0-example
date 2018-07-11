@@ -23,9 +23,10 @@ func main() {
 		}
 	})
 
-	r.GET("/chat", handlers.GetChat)
-	r.POST("/chat", handlers.SendChat)
-	r.GET("/all", handlers.AllRooms)
+	r.GET("/todo", handlers.GetTodoListHandler)
+	r.POST("/todo", handlers.AddTodoHandler)
+	r.DELETE("/todo", handlers.DeleteTodoHandler)
+	r.PUT("/todo", handlers.CompleteTodoHandler)
 
 	err := r.Run(":3000")
 	if err != nil {
