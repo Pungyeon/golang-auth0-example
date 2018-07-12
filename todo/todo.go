@@ -24,7 +24,7 @@ func initialiseList() {
 // Todo data structure for task with a description of what to do
 type Todo struct {
 	ID       string `json:"id"`
-	Message  string `json:"message`
+	Message  string `json:"message"`
 	Complete bool   `json:"complete"`
 }
 

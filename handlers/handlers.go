@@ -27,12 +27,8 @@ func AddTodoHandler(c *gin.Context) {
 
 // DeleteTodoHandler will delete a specified todo based on user http input
 func DeleteTodoHandler(c *gin.Context) {
-	todoItem, statusCode, err := convertHTTPBodyToTodo(c.Request.Body)
-	if err != nil {
-		c.JSON(statusCode, err)
-		return
-	}
-	if todo.Delete(todoItem.ID) != nil {
+	todoID := c.Param("id")
+	if err := todo.Delete(todoID); err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}

@@ -15,24 +15,7 @@ export class AuthGuardService implements CanActivate {
             return true;
         }
 
-        this.router.navigate(['/auth/login']);
-        /* return new Observable<boolean>((observer) =>
-        {
-            
-
-           this.auth.AuthOK().toPromise().then((data) => {
-                observer.next(true);
-                observer.complete();
-            }).catch((err) => {
-                const redirectUrl = environment.gateway + '/auth/login';
-                if (environment.gateway === "") {
-                    this.router.navigate(['/auth/login']);   
-                } else {
-                    window.location.href = redirectUrl;
-                }
-                observer.next(false);
-                observer.complete();
-            });
-        }); */
+        this.auth.login()
+        // this.router.navigate(['/auth/login']);
     }
 }

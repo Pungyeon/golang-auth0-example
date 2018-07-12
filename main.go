@@ -54,10 +54,10 @@ func main() {
 	})
 
 	authorized := r.Group("/")
-	authorized.Use(authRequired())
+	// authorized.Use(authRequired())
 	authorized.GET("/todo", handlers.GetTodoListHandler)
 	authorized.POST("/todo", handlers.AddTodoHandler)
-	authorized.DELETE("/todo", handlers.DeleteTodoHandler)
+	authorized.DELETE("/todo/:id", handlers.DeleteTodoHandler)
 	authorized.PUT("/todo", handlers.CompleteTodoHandler)
 
 	err := r.Run(":3000")
