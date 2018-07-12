@@ -19,3 +19,5 @@ This will place all minimised javascript files in the `dist` folder of the root 
 You can run the application using the command
 
 > run main.go
+
+!!WARNING - as of right now, the UI cannot be run with `ng serve`, this will be fixed asap.
