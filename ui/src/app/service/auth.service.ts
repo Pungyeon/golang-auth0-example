@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { environment } from "src/environments/environment";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse, HttpHeaders } from "@angular/common/http";
 import { Router } from "@angular/router";
 
 import * as auth0 from 'auth0-js';
@@ -16,7 +16,7 @@ export class AuthService {
         domain: 'pungy.eu.auth0.com',
         responseType: 'token id_token',
         audience: 'https://pungy.eu.auth0.com/userinfo',
-        redirectUri: 'http://localhost:3000/callback',
+        redirectUri: environment.callback,
         scope: 'openid'
     });
 
@@ -60,5 +60,13 @@ export class AuthService {
         // Access Token's expiry time
         const expiresAt = JSON.parse(localStorage.getItem('expires_at') || '{}');
         return new Date().getTime() < expiresAt;
+    }
+
+    public createAuthHeaderValue(): string {
+        var token = localStorage.getItem("id_token");
+        if (token == "") {
+            "";
+        }
+        return 'Bearer ' + token;
     }
 }

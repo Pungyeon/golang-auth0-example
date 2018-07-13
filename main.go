@@ -18,25 +18,31 @@ func authRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		jot, err := jwt.FromRequest(c.Request)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, "cannot read token from request")
+			terminateWithError(http.StatusUnauthorized, "cannot read token from request", c)
 			return
 		}
 
 		if jot.Validate(jwt.AlgorithmValidator("RS256")) != nil {
-			c.JSON(http.StatusUnauthorized, "could not validate signing algorithm")
+			terminateWithError(http.StatusUnauthorized, "could not validate signing algorithm", c)
 			return
 		}
 
 		if jot.Validate(jwt.IssuerValidator("https://pungy.eu.auth0.com/")) != nil {
-			c.JSON(http.StatusUnauthorized, "could not validate issuer")
+			terminateWithError(http.StatusUnauthorized, "could not validate issuer", c)
 			return
 		}
 
 		if jot.Validate(jwt.ExpirationTimeValidator(time.Now())) != nil {
-			c.JSON(http.StatusUnauthorized, "token has expired")
+			terminateWithError(http.StatusUnauthorized, "token has expired", c)
 			return
 		}
+		c.Next()
 	}
+}
+
+func terminateWithError(statusCode int, message string, c *gin.Context) {
+	c.JSON(statusCode, gin.H{"error": message})
+	c.Abort()
 }
 
 func main() {
@@ -54,7 +60,7 @@ func main() {
 	})
 
 	authorized := r.Group("/")
-	// authorized.Use(authRequired())
+	authorized.Use(authRequired())
 	authorized.GET("/todo", handlers.GetTodoListHandler)
 	authorized.POST("/todo", handlers.AddTodoHandler)
 	authorized.DELETE("/todo/:id", handlers.DeleteTodoHandler)

@@ -2,7 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
@@ -13,6 +13,7 @@ import { CallbackComponent } from 'src/app/callback/callback.component';
 import { TodoComponent } from './todo/todo.component';
 import { TodoService } from './service/todo.service';
 import { FormsModule } from '@angular/forms';
+import { TokenInterceptor } from 'src/app/service/token.interceptor';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,11 @@ import { FormsModule } from '@angular/forms';
     FormsModule,
     HttpClientModule
   ],
-  providers: [AuthGuardService, AuthService, TodoService],
+  providers: [AuthGuardService, AuthService, TodoService, {
+    provide: HTTP_INTERCEPTORS,
+    useClass: TokenInterceptor,
+    multi: true
+  }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

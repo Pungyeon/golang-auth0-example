@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  gateway: ''
+  gateway: '',
+  callback: 'http://localhost:3000/callback'
 };
