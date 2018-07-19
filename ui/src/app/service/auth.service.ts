@@ -46,8 +46,8 @@ export class AuthService {
         // Set the time that the Access Token will expire at
         const expiresAt = JSON.stringify((authResult.expiresIn * 1000) + new Date().getTime());
         this.access_token = authResult.accessToken;
-        this.id_token = authResult.id_token;
-        this.expires_at = authResult.expiresAt;
+        this.id_token = authResult.idToken;
+        this.expires_at = expiresAt;
     }
 
     public logout(): void {

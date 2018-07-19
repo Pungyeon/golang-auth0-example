@@ -1,39 +1,40 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
-	"time"
 
-	"github.com/gbrlsnchs/jwt"
+	"github.com/auth0-community/auth0"
 	"github.com/gin-gonic/gin"
+	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/Pungyeon/golang-auth0-example/handlers"
 )
+
+/* USAGE:
+ * Set the environment variables:
+ * 	AUTH0_CLIEN_ID
+ * 	AUTH0_DOMAIN: "https://pungy.eu.auth0.com/" (very importantly not omitting the last /)
+ */
 
 // ValidateRequest will verify that a token received from an http request
 // is valid and signy by authority
 func authRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		jot, err := jwt.FromRequest(c.Request)
+		audience := os.Getenv("AUTH0_CLIENT_ID")
+		domain := os.Getenv("AUTH0_DOMAIN")
+		client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: domain + ".well-known/jwks.json"}, nil)
+		configuration := auth0.NewConfiguration(client, []string{audience}, domain, jose.RS256)
+		validator := auth0.NewValidator(configuration, nil)
+
+		_, err := validator.ValidateRequest(c.Request)
+
 		if err != nil {
-			terminateWithError(http.StatusUnauthorized, "cannot read token from request", c)
-			return
-		}
-
-		if jot.Validate(jwt.AlgorithmValidator("RS256")) != nil {
-			terminateWithError(http.StatusUnauthorized, "could not validate signing algorithm", c)
-			return
-		}
-
-		if jot.Validate(jwt.IssuerValidator("https://pungy.eu.auth0.com/")) != nil {
-			terminateWithError(http.StatusUnauthorized, "could not validate issuer", c)
-			return
-		}
-
-		if jot.Validate(jwt.ExpirationTimeValidator(time.Now())) != nil {
-			terminateWithError(http.StatusUnauthorized, "token has expired", c)
+			log.Println(err)
+			terminateWithError(http.StatusUnauthorized, "token is not valid", c)
 			return
 		}
 		c.Next()
