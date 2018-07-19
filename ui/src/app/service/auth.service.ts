@@ -11,6 +11,10 @@ import * as auth0 from 'auth0-js';
 export class AuthService {
     constructor(public router: Router)  {}
 
+    access_token: string;
+    id_token: string;
+    expires_at: string;
+
     auth0 = new auth0.WebAuth({
         clientID: 'bpF1FvreQgp1PIaSQm3fpCaI0A3TCz5T',
         domain: 'pungy.eu.auth0.com',
@@ -41,16 +45,15 @@ export class AuthService {
     private setSession(authResult): void {
         // Set the time that the Access Token will expire at
         const expiresAt = JSON.stringify((authResult.expiresIn * 1000) + new Date().getTime());
-        localStorage.setItem('access_token', authResult.accessToken);
-        localStorage.setItem('id_token', authResult.idToken);
-        localStorage.setItem('expires_at', expiresAt);
+        this.access_token = authResult.accessToken;
+        this.id_token = authResult.id_token;
+        this.expires_at = authResult.expiresAt;
     }
 
     public logout(): void {
-        // Remove tokens and expiry time from localStorage
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('id_token');
-        localStorage.removeItem('expires_at');
+        this.access_token = null;
+        this.id_token = null;
+        this.expires_at = null;
         // Go back to the home route
         this.router.navigate(['/']);
     }
@@ -58,15 +61,14 @@ export class AuthService {
     public isAuthenticated(): boolean {
         // Check whether the current time is past the
         // Access Token's expiry time
-        const expiresAt = JSON.parse(localStorage.getItem('expires_at') || '{}');
+        const expiresAt = JSON.parse(this.expires_at || '{}');
         return new Date().getTime() < expiresAt;
     }
 
     public createAuthHeaderValue(): string {
-        var token = localStorage.getItem("id_token");
-        if (token == "") {
+        if (this.id_token == "") {
             "";
         }
-        return 'Bearer ' + token;
+        return 'Bearer ' + this.id_token;
     }
 }
