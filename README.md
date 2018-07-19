@@ -1,3 +1,26 @@
+# Creating a Todo list with Authentication, using Golang, Angular and Auth0
+
+## What we will be building
+
+## Prequisites & Installation
+
+## The Todo list backend
+### Creating our in-memory todo list
+### Initilialising our Web Server & Serving static files
+### Writing the API Endpoints
+### Using middleware for authorization
+
+## Creating our Frontend
+### Initialising our angular project
+### Writing a welcome page
+### Writing our todo list functionality
+### Creating our auth(0) service
+### implementing our auth-guard
+
+## Putting it all together
+
+-- END OF OUTLINE --
+
 # Prerequisites
 Please make sure to have nodejs, npm and golang installed. The angular cli is also an advantage, though not necessarily a prerequisite. 
 To install the angular cli run the following npm command:
