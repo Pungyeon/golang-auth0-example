@@ -426,11 +426,11 @@ func terminateWithError(statusCode int, message string, c *gin.Context) {
 
 In our main function we have added a routing group, called authorized. We then tell gin that this routing group should use a middleware function called `authRequired` and then change all our todo operations, to make them a part of this group, rather than being directly attached to our gin router.
 
-We have also written a middlware function. A middleware function is basically a function that is run, before our actual handler. So, a request towards `GET '/todo'` is no processed in the `authRequired` function and then the `handlers.GetTodoListHandler`.
+We have also written a middlware function. A middleware function is basically a function that is run, before (or after) our actual handler. So, a request towards `GET '/todo'` is now processed in the `authRequired` function first and then the `handlers.GetTodoListHandler`.
 
 Another addition is two new global variables audience and domain, which we will need for our authentication against Auth0. These will be retrieved from our environment variables on start, using the function `setAuth0Variables`.
 
-The function `authRequired` is a middleware function. In gin terms, this must return a gin.HandlerFunc, which contains a `Next()` invokation in the body. Basically, our function validates a token which is provided in the incoming request 'Authorization' header. We do this using JWKS (JSON Web Key Set). Essentially, JWKS is a method for verifying JWT, using a public/private key infrastructure. In out case, both the private and public keys are provided by Auth0, so we don't have to do any additional work.
+The function `authRequired` is a middleware function. In gin terms, this must return a gin.HandlerFunc, which contains a `Next()` invokation in the body. Basically, our function validates a token which is provided in the incoming request 'Authorization' header. We do this using JWKS (JSON Web Key Set). Essentially, JWKS is a method for verifying JWT, using a public/private key infrastructure. In our case, both the private and public keys are provided by Auth0, so we don't have to do any additional work.
 
 ```
 To read about JWKS: https://auth0.com/docs/jwks
@@ -460,8 +460,7 @@ This will place a new angular quickstart project in a new folder: ui. Now, we ne
 
 > npm install
 
-Last thing we need to do, before we start writing our application, is to add a few CDN links to our index.html file. All of these are also possible to get from `npm install`, or to download locally, but this is the simplest solution as of right now. So, edit the file `./ui/src/app/index.html` to the following:
-
+The command will look at the `package.json` file and see which dependencies are stated (and check their dependencies) and download all of them. Last thing we need to do, before we start writing our application, is to add a few CDN links to our index.html file. All of these are also possible to get from `npm install`, or to download locally, but this is the simplest solution as of right now. So, edit the file `./ui/src/app/index.html` to the following:
 
 #### ./ui/src/index.html
 ```html
@@ -531,7 +530,7 @@ This will create a new folder in our `app` folder, named `todo` and place four f
 * home.component.ts - the TypeScript file for all the javascript to support the html page
 
 ```
-NOTE: The CLI will also automatically add this class to our `app.module.ts`, in the `@NgModule.declarations` section.
+NOTE: The CLI will also automatically add this newly created class to our `app.module.ts`, in the `@NgModule.declarations` section.
 ```
 
 Our welcome page, will be extremely simple and we will only have to touch our `home.component.html` file and change it to this:
@@ -597,13 +596,13 @@ Here we are stating that we want to `export` our TodoService class, thereby maki
 NOTE: the @Injectable() decorator ensures that we can inject the HttpClient. Without this, you will get some strange console errors.
 ```
 
-At the bottom of the file, we are exporting another class `Todo` which is a mirror of our todo class from our backend. We use this class throughout our project, to ensure a more accurate description in code, what we are sending and retrieving from our backend. The rest of the service is some very basic HTTP calls to our backend. Notice that we are using the `environment.gateway` variable to determine where our http calls are headed. This makes it easier to change environments.
+At the bottom of the file, we are exporting another class `Todo` which is a mirror of our todo class from our backend. We use this class throughout our project, to ensure a more accurate description in code, what we are sending and retrieving from our backend. The rest of the service is some very basic HTTP calls to our backend. Notice that we are using the `environment.gateway` variable to determine where our http calls are headed, making it easier to change environments.
 
 ```
 NOTE: This service must also be added to our app.module.ts file, just like all our components. However, since this is a service our components use, we must add it to the 'providers' section in @NgModule. We will also need to add HttpClientModule to the imports section. There is a reference to where and how, at a later point in the tutorial
 ```
 
-Now, let's use our new todo service, for usage in our todo component. First, let's create our TypeScript logic in the `todo.component.ts` file:
+Now, let's use our new todo service, for usage in our todo component. First, let's write our TypeScript logic in the `todo.component.ts` file:
 
 #### ./ui/src/app/todo/todo.component.ts
 ```js
