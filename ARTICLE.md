@@ -3,42 +3,40 @@
 **TL;DR:** In this article, you will learn how to build modern applications with Golang and Angular. Throughout the article, you will build a secure Golang API that will support a ToDo list application that you will develop with Angular. To facilitate the identity management, you will integrate Auth0 both in your backend and in your frontend.
 
 ## Why Choosing Golang and Angular
-The technologies of choice for this article, as mentioned earlier, is golang for the backend and angular for the frontend. But why these two technologies? 
+The technologies of choice for this article, is golang for the backend and angular for the frontend. But why have we chosen these two technologies? 
 
 ### Golang
-Golang or Go, is Google's very own programming language. It's a statically typed and compiled language. Over the last few years Golang has become a very popular language, building applications such as Docker, Kubernetes and all of Hashicorps suite of programs. Golang is not quite like other programming languages. It has a very strong standard library and can get very far before having to use 3rd party libraries, it compiles to a single binary, has amazing support for concurrency, testing & benchmarking and has a fantastic community behind it.
+Golang (or Go), is Google's very own programming language. It's a statically typed and compiled language. Over the last few years Golang has become a very popular language, being the language of choice for projects such as Docker, Kubernetes and all of Hashicorps suite of programs. Golang is not quite like other programming languages. It has a very strong standard library and can get very far before having to use 3rd party libraries, it compiles to a single binary, has amazing support for concurrency, testing & benchmarking and has a fantastic community behind it.
 
-Golang is by no means the perfect language, but the reason I use it every day, is for the simple reason that it get's the job done. Other than Python or Ruby, I don't believe there is a language as effective in time-to-deliver as Golang. The reason why I haven't chosen Ruby or Python being, I like statically typed compiled languages. It results in a faster application and avoids dependency hell, especially considering that Golang is cross-platform compiled.
-
-<gif> avoid complexity </gif>
+Golang is by no means the perfect language, but the reason I use it every day, is for the simple reason that it get's the job done. Other than Python or Ruby, I don't believe there is a language as effective in time-to-deliver as Golang. The reason why I haven't chosen Ruby or Python being, I prefer statically typed compiled languages. It results in a faster application and avoids dependency hell for the end user. Golang also has excellent cross-platform compilation support, making it even more attractive as a programming language.
 
 ### Angular
-Currently, the only real viable choice for writting a frontend is using Javascript. All browsers support it to a satisfactory degree, so we avoid strange dependency and compatibility issues. There is one exception, which is when people are using old versions of IE. To avoid these cases, I usually recommend detecting IE on the front page of your site, and suggesting that your users download Google Chrome or Firefox and then congratulate them for entering the 21st century.
+Currently, the only real viable choice for writting a frontend is using Javascript. All browsers support it to a satisfactory degree and so we avoid strange dependency and compatibility issues. So, that makes choosing the frontend technology easy... right? Nope! As of writing this article, there are currently three major frameworks for writing web applications: React, Vue & Angular (and 100 other smaller frameworks). Now, you can 100% find an article which states that "Framework X is much better than frameworks Y & Z, because blah" or an article describing that all three frameworks mentioned are essentially dead, because of some new framework. I'm not going to go into the politics of frontend frameworks, it's just not worth the effort. My own opinion is, that all three frameworks accomplish the exact same thing and the end result that they produce are... quite similar. All use yarn or npm to download 100+ MB's of god knows what in node_modules, and then compress all of this into  smaller html and js files. 
 
-So, that's make choosing the frontend technology easy... right? Nope! As of writing this article, there are currently three major frameworks for writing web applications: React, Vue & Angular. Now, you can 100% find an article which states that "Framework X is much better than frameworks Y & Z, because blah" or an article describing that all three frameworks mentioned are essentially dead, because of new framework. I'm not going to go into the politics of frontend frameworks, it's just not worth the effort. My own opinion is, that all three frameworks accomplish the exact same thing and the end result that they produce are... quite similar. All use yarn or npm to download 100+ MB's of god knows what in node_modules, and then compress all of this into a small 10 KB js file. 
+I like Angular, because it comes with everything that I expect to come with a web framework. Some standard components, easy management of libraries, routing and authentication support. It makes life easy, and I like life, when it's easy. React is also a super strong framework, but I have OCD issues with javascript in my html, just like many people have issues with their different foods touching one another on their plate. Lastly, we have Vue, which is also a very strong framework. As of now, I cannot tell you a substantial reason to choose Angular over Vue, nor the other way around. However, I started out with Angular and Angular does the job for me.
 
-<gif> Magic </gif>
+Either way, Angular is another Google backed project, much like Golang. It has sprouted from it's old brother AngularJS, which was **THE** javascript framework a few years ago. The new Angular is not as popular, which I think there are a few reasons for. There is more competition with React and Vue. There were a lot of breaking changing at the start of Angular and the last reason, which cause a lot of confusion is the versioning convention. Instead of making versions such as 2.2.1.1, it was decided that all breaking changes would cause a total version aggregation. So, the current version of Angular (as of writing this article) is Angular 6. This makes it difficult to Google (ironically) and also weird to refer to, and there are many different ways to refer to it: Angular, Angular 2+, Angular 6, etc.
 
-I like Angular, because it comes with everything that I expect to come with a web framework. Some standard components, easy management of libraries, routing and authentication support. It makes life easy, and I like life, when it's easy. React is also a super strong framework, but I have OCD issues with javascript in my html, just like many people have issues with their different foods touching one another on their plate. At last, we have Vue, which is also a very strong framework. As of now, I cannot tell you a substantial reason to choose Angular over Vue, nor the other way around. However, I started out with Angular and Angular does the job for me.
+Despite all of this, I still think that Angular is an excellent frontend framework for JavaScript. I love that it forces uses to use TypeScript and thereby standardising the structure of code and as mentioned earlier, I love the angular-cli toolbox, which comes with all the tools I need and expect out-of-the-box.
 
 ## Prequisites for Golang and Angular
 ### Golang
-We need to install Golang. That's easy. Golang is awesome in that way. For installation instructaions, please visit golang.org/install
+We need to install Golang. That's easy. Golang is awesome in that way. For installation instructaions, please visit https://golang.org/doc/install
 
 ### Angular
-Uff... so. First we need to install npm and node. That can be done using these instructions <link>. From here on, we can type this command in our terminal or command line: 
+First we need to install npm and node. That can be done using these instructions https://nodejs.org/en/download/. From here on, we can type this command in our terminal or command line: 
 
 > npm install -g @angular/cli
 
 Boom, we are ready.
 
 ## Building the Golang API
-Now we are going to build our Golang API. We will be using the web server framework 'Gin' for this. Gin is, like many other go frameworks, an open source project which simplifies creating API endpoints. Keep in mind, that nothing we will be building in this article is impossible or even difficult to do with the standard library of go. The only reason we are using gin, is because it simplifies and standardises our process a little, making life easier. We like life, when life is easy.
+Now we are going to build our Golang API. We will be using the web server framework 'Gin' for this. Gin is, like many other go frameworks, an open source project which simplifies creating API endpoints. Keep in mind, that nothing we will be building in this article is impossible to do with the standard library of go. The only reason we are using gin, is because it simplifies and standardises our process a little, making life easier. We like life, when life is easy.
 
 ### Creating our In-Memory ToDo List
-Before we start writing our web server, we will start writing our component for handling a Todo list. Our implementation will be a static object, which will store all todo items in-memory perform CRUD operations on these todo items. Essentially, we are mocking a very simple database. Typically, this is not a bad way to start out development, by creating a mock version of your database, before implementing your actual database. Not only does it makes testing easier (and something that you can do from the beginning of your project), but it also helps implying an interface for our store (or database). 
+Before we start writing our web server, we will start writing our component for handling a Todo list. Our implementation will be a static object, which will store all todo items in-memory and perform CRUD operations on these todo items. Essentially, we are mocking a very simple database. Typically, this is not a bad way to start out development; Implementing a mock version of your database, before implementing your actual database. Not only does it makes testing easier (and something that you can do from the beginning of your project), but it also helps implying an interface for our store (or database). 
 
-So let's get started with our project. Golang by default will look for pacakges in the GO_PATH environment variable, which is places in the user directory of the system (i.e on unix systems ~/go). Packages are then stored in ~/go/src/, and therefore, placing our projects here, will make our lives a lot easier (remember, we like this). I have placed mine in the directory ~/go/src/github.com/Pungyeon/golang-auth0-example and will refer to this directory as root (or './') from here on.
+So let's get started with our project. Golang by default will look for pacakges in the GO_PATH environment variable, which is places in the user directory of the system (i.e on unix systems ~/go & on windows %USERPROFILE%/go). Packages are then stored in ~/go/src/, and therefore, placing our projects here, will make our lives a lot easier (remember, we like this). I have placed mine in the directory ~/go/src/github.com/Pungyeon/golang-auth0-example and will refer to this directory as root (or './') from here on.
 
 In our root directory, create a new folder named 'store' and in this folder place a new file called store.go. In this file, we will write the following content:
 
@@ -162,7 +160,7 @@ Next, we will implement the first method of our todo store: `Get()`. This method
 
 The next method is `Add()`, which will create a new Todo based on a user input message and then append this todo to our list. Notice that we are using our mutex to `Lock()` before we append to our list and then `Unlock()` again once this operation has ended. This is very important, as we might send multiple operations at the same time. If these operations try to access the same memory, we can run into a race-condition. This would be bad, and would actually cause golang to crash. To avoid this, we use the mutex, which is scoped to our package.
 
-The third public method is `Delete()` which will remove an item from the list and the last one is `Complete()` which will mark a todo item as complete in our list, based on it's `id`. 
+The third public method is `Delete()` which will remove an item from the list. The last public method one is `Complete()` which will mark a todo item as complete in our list, based on it's `id`. 
 
 ```
 Notice that all our public functions are very simply. They aren't doing much more than a single operation. Finding an item and then either deleting or completing them. This makes our code really easy to read and easy to understand. These principles come from 'Clean Code' written by Robert C. Martin, whose material I can whole-heartedly recommend!
@@ -174,13 +172,11 @@ Be aware, that we are using a third party package, `xid`, for generating our GUI
 
 > go get github.com/rs/xid
 
-Next, we have our `removeElementByLocation` function. Essentially, all we are doing is setting our list variable to a new list, which is all elements of our list up to a given location, appended with all elements after (but not including) the same given location. This means, we can give our function a location and it will set our list to an new list, without that given location, essentially deleting it from our list.
+Next, we have our `removeElementByLocation` function. We are setting our list variable to a new list, which contains all elements of our list up to a given location, appended with all elements after (but not including) the same given location. This means, we can give our function a location and it will set our list to an new list, without that given location, essentially deleting it from our list.
 
 The very last function in our store packate is our `setTodoCompleteByLocation`. Just like our remove function, this function takes in a location in form of an integer. However, this function is much less complex and simply sets the given location in our list to true.
 
 Putting this together, we can see how our public functions `Delete` and `Complete` work. They find a todo item based on id and returns a location of where that item resides in our list, or returns an error if no item exists. If an error was returned, we pass on this error to the function caller, if not, we perform either a delete or complete operation on that item's location in our list.
-
-<gif> Simples! </gif>
 
 ### Initilialising our Web Server & Serving Static Files
 Now to the web server!
@@ -340,6 +336,7 @@ If this works, we will now get a response with our single todo item on our list,
 
 Now that our account has been setup, we need to make some changes on our backend. Essentially, we want our web api to check a service every time that a request is made towards. To do this, we will change our `main.go` file to the following:
 
+#### ./main.go
 ```go
 package main
 
@@ -465,6 +462,8 @@ This will place a new angular quickstart project in a new folder: ui. Now, we ne
 
 Last thing we need to do, before we start writing our application, is to add a few CDN links to our index.html file. All of these are also possible to get from `npm install`, or to download locally, but this is the simplest solution as of right now. So, edit the file `./ui/src/app/index.html` to the following:
 
+
+#### ./ui/src/index.html
 ```html
 <!doctype html>
 <html lang="en">
@@ -492,6 +491,7 @@ All we have done is change the title to "Auth0 Golang Example" and added three e
 
 Another change that we would like to do for preparation, is to edit the environment files found in `./ui/src/environments`. These files will act as global variables for our application and differentiate between whether we are running a local dev environment, or we are running in production. Change the `environment.prod.ts` to:
 
+#### ./ui/src/environments/environment.prod.ts
 ```js
 export const environment = {
   production: true,
@@ -502,6 +502,7 @@ export const environment = {
 
 And if you want to develop using `ng serve`, then change the `environment.ts` (which is considered our dev environment by default), to the following:
 
+#### ./ui/src/environments/environment.ts
 ```js
 export const environment = {
   production: false,
@@ -534,6 +535,8 @@ NOTE: The CLI will also automatically add this class to our `app.module.ts`, in 
 ```
 
 Our welcome page, will be extremely simple and we will only have to touch our `home.component.html` file and change it to this:
+
+#### ./ui/src/app/home/home.component.html
 ```html
 <div class="c-block">
   <h3> Welcome Home!</h3>
@@ -554,6 +557,7 @@ Our todo functionality will be split into two, a component (the one we created i
 
 So, let's begin by creating our service. Best practice tells us to create a new folder called `service` and place a new file in there named `todo.service.ts`. This file will consist of the following code: 
 
+#### ./ui/src/app/service/todo.service.ts
 ```js
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
@@ -601,6 +605,7 @@ NOTE: This service must also be added to our app.module.ts file, just like all o
 
 Now, let's use our new todo service, for usage in our todo component. First, let's create our TypeScript logic in the `todo.component.ts` file:
 
+#### ./ui/src/app/todo/todo.component.ts
 ```js
 import { Component, OnInit } from '@angular/core';
 import { TodoService, Todo } from '../service/todo.service';
@@ -663,6 +668,7 @@ Anyway... the `getAll` function subscribes to data from the `todoService.getTodo
 
 Now that our TypeScript logic is done, here is our HTML code:
 
+#### ./ui/src/app/todo/todo.component.html
 ```html
 <h3> Todos </h3>
 <table class="table">
@@ -743,6 +749,7 @@ NOTE: insert something here about localStorage
 
 Either way, our authentication service, will look like this:
 
+#### ./ui/src/app/service/auth.service.ts
 ```js
 import { Injectable } from "@angular/core";
 import { environment } from "src/environments/environment";
@@ -836,6 +843,7 @@ Now we need to create our callback component, which will be done like the other 
 
 Change the `callback.component.ts` to the following:
 
+#### ./ui/src/app/callback/callback.component.ts
 ```js
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../service/auth.service';
@@ -863,6 +871,7 @@ If you want you can add your favourite loading gif to this component, to let you
 
 Once we have set our authentication session with our callback component, we need to make sure that all future requests include our retrieved token, in the `Authorization` header. To do this, we will create yet another service. So, create a new file: `./ui/src/app/service/token.interceptor.ts`. This is our interceptor service, which will intercept all of our outgoing requests and add an authentication header, if a token is available.
 
+#### ./ui/src/app/service/token.interceptor.ts
 ```js
 import { Injectable } from "@angular/core";
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from "@angular/common/http";
@@ -899,6 +908,7 @@ To include this in our `app.module.ts` file, we will need to add the following o
 
 Almost there! Now, we need to change our `app.component.ts` page to include routing and actually define our routes. Let's start by creating our routing definition. Create a new file: `./ui/src/app/app-routing.module.ts` and in this file, write the following code:
 
+#### ./ui/src/app/app-routing.module.ts
 ```js
 import { HomeComponent } from "./home/home.component";
 import { RouterModule, Routes } from '@angular/router';
@@ -925,6 +935,7 @@ The only important aspect of this, if our constant routes. This defines an array
 
 The `canActivate` property basically asks a service (which implements CanActivate) for a boolean response of whether or not a user is able to activate this page. So let's quickly create this service as well. Create a new file:  `./ui/src/app/service/auth-guard.service.ts`, which will contain the logic to whether or not a user is authentorized.
 
+#### ./ui/src/app/service/auth-guard.service.ts
 ```js
 import { CanActivate, Router } from "@angular/router";
 import { Injectable } from "@angular/core";
@@ -950,10 +961,9 @@ export class AuthGuardService implements CanActivate {
 
 Really a quite simple service, which calls our AuthService, asking whether the current user is authenticated. If the user is authenticated, we will return a true forwarding the user to the request route. If not, we will invoke the `auth.login` function, which will send our user to the Auth0 login page.
 
---------
-
 Now, we will include our routing and our auth service in our `app.module.ts` file, so the finalised version will look as such:
 
+#### ./ui/src/app/app.module.ts
 ```js
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
@@ -999,6 +1009,7 @@ For the routing, as you can see, we have imported our `AppRoutingModule`. So, no
 ## Putting it all together
 So, it's been a long while, but now we are finally going to add routing to the application. As well as creating a little menu bar, for navigation and logging out. First we need to edit the `./ui/src/app/app.component.ts` to add our AuthService to our AppComponent.
 
+#### ./ui/src/app/app.component.ts
 ```js
 import { Component } from '@angular/core';
 import { AuthService } from 'src/app/service/auth.service';
@@ -1016,6 +1027,7 @@ export class AppComponent {
 
 Next, we need to edit the `./ui/src/app/app.component.html` file and set it to the following code:
 
+#### ./ui/src/app/app.component.html
 ```html
 <nav class="navbar navbar-default">
     <div class="container-fluid">
