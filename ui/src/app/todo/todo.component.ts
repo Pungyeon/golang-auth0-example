@@ -48,7 +48,4 @@ export class TodoComponent implements OnInit {
       this.getAll();
     })
   }
-
-
-
 }

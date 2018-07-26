@@ -71,18 +71,6 @@ func newTodo(msg string) Todo {
 	}
 }
 
-func removeElementByLocation(i int) {
-	mtx.Lock()
-	list = append(list[:i], list[i+1:]...)
-	mtx.Unlock()
-}
-
-func setTodoCompleteByLocation(location int) {
-	mtx.Lock()
-	list[location].Complete = true
-	mtx.Unlock()
-}
-
 func findTodoLocation(id string) (int, error) {
 	mtx.RLock()
 	defer mtx.RUnlock()
@@ -96,4 +84,16 @@ func findTodoLocation(id string) (int, error) {
 
 func isMatchingID(a string, b string) bool {
 	return a == b
+}
+
+func removeElementByLocation(i int) {
+	mtx.Lock()
+	list = append(list[:i], list[i+1:]...)
+	mtx.Unlock()
+}
+
+func setTodoCompleteByLocation(location int) {
+	mtx.Lock()
+	list[location].Complete = true
+	mtx.Unlock()
 }

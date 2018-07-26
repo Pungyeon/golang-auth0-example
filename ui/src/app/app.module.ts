@@ -3,7 +3,6 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
@@ -23,7 +22,6 @@ import { TokenInterceptor } from 'src/app/service/token.interceptor';
     TodoComponent
   ],
   imports: [
-    NgbModule.forRoot(),
     AppRoutingModule,
     BrowserModule,
     FormsModule,

@@ -16,10 +16,10 @@ export class AuthService {
     expires_at: string;
 
     auth0 = new auth0.WebAuth({
-        clientID: 'bpF1FvreQgp1PIaSQm3fpCaI0A3TCz5T',
-        domain: 'pungy.eu.auth0.com',
+        clientID: environment.clientId,
+        domain: environment.domain,
         responseType: 'token id_token',
-        audience: 'https://pungy.eu.auth0.com/userinfo',
+        audience: 'https://' + environment.domain + '/userinfo',
         redirectUri: environment.callback,
         scope: 'openid'
     });

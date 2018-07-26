@@ -20,33 +20,13 @@ import (
  * 	AUTH0_DOMAIN: "https://pungy.eu.auth0.com/" (very importantly not omitting the last /)
  */
 
-// ValidateRequest will verify that a token received from an http request
-// is valid and signy by authority
-func authRequired() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		audience := os.Getenv("AUTH0_CLIENT_ID")
-		domain := os.Getenv("AUTH0_DOMAIN")
-		client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: domain + ".well-known/jwks.json"}, nil)
-		configuration := auth0.NewConfiguration(client, []string{audience}, domain, jose.RS256)
-		validator := auth0.NewValidator(configuration, nil)
-
-		_, err := validator.ValidateRequest(c.Request)
-
-		if err != nil {
-			log.Println(err)
-			terminateWithError(http.StatusUnauthorized, "token is not valid", c)
-			return
-		}
-		c.Next()
-	}
-}
-
-func terminateWithError(statusCode int, message string, c *gin.Context) {
-	c.JSON(statusCode, gin.H{"error": message})
-	c.Abort()
-}
+var (
+	audience string
+	domain   string
+)
 
 func main() {
+	setAuth0Variables()
 	r := gin.Default()
 
 	// This will ensure that the angular files are served correctly
@@ -71,4 +51,34 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func setAuth0Variables() {
+	audience = os.Getenv("AUTH0_CLIENT_ID")
+	domain = os.Getenv("AUTH0_DOMAIN")
+}
+
+// ValidateRequest will verify that a token received from an http request
+// is valid and signy by authority
+func authRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: domain + ".well-known/jwks.json"}, nil)
+		configuration := auth0.NewConfiguration(client, []string{audience}, domain, jose.RS256)
+		validator := auth0.NewValidator(configuration, nil)
+
+		_, err := validator.ValidateRequest(c.Request)
+
+		if err != nil {
+			log.Println(err)
+			terminateWithError(http.StatusUnauthorized, "token is not valid", c)
+			return
+		}
+		c.Next()
+	}
+}
+
+func terminateWithError(statusCode int, message string, c *gin.Context) {
+	c.JSON(statusCode, gin.H{"error": message})
+	c.Abort()
 }
