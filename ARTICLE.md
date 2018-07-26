@@ -433,9 +433,11 @@ We have also written a middlware function. A middleware function is basically a 
 
 Another addition is two new global variables audience and domain, which we will need for our authentication against Auth0. These will be retrieved from our environment variables on start, using the function `setAuth0Variables`.
 
-The function `authRequired` is a middleware function. In gin terms, this must return a gin.HandlerFunc, which contains a `Next()` invokation in the body. Basically, our function validates a token which is provided in the incoming request 'Authorization' header. We do this using JWK.
+The function `authRequired` is a middleware function. In gin terms, this must return a gin.HandlerFunc, which contains a `Next()` invokation in the body. Basically, our function validates a token which is provided in the incoming request 'Authorization' header. We do this using JWKS (JSON Web Key Set). Essentially, JWKS is a method for verifying JWT, using a public/private key infrastructure. In out case, both the private and public keys are provided by Auth0, so we don't have to do any additional work.
 
-<explanation of jwk>
+```
+To read about JWKS: https://auth0.com/docs/jwks
+```
 
 Using the auth0 golang library, makes this extremely simple. All we have to do, is four lines of code to validate our incoming token. If this results in an error we will terminate the current connection, responding to the incoming request with a `http.StatusUnauthorized` (401) and terminating the connection. If the token is validated, then we will send the request onto the next function in the handler chain. 
 
@@ -1067,7 +1069,7 @@ So, go to the root of the project and use the command:
 And the server will be up and running! Go to `localhost:3000/` and celebrate by creating all your secured todo items!
 
 ```
-NOTE: You can also compile the go code into a binary using the command: go build -o todo-server main.go, which will create an executable file called todo-server. The file will be compiled to your system, but that can be modified using the GOOS and GOARCH environment variables, read more here: 
+NOTE: You can also compile the go code into a binary using the command: go build -o todo-server main.go, which will create an executable file called todo-server. The file will be compiled to your system, but that can be modified using the GOOS and GOARCH environment variables, read more here: https://golang.org/cmd/compile/
 ```
 
 ## Conclusion
