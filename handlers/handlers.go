@@ -6,29 +6,48 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/Pungyeon/golang-auth0-example/db"
 	"github.com/Pungyeon/golang-auth0-example/todo"
 	"github.com/gin-gonic/gin"
 )
 
+// TodoHandler contains all the API endpoints for our todo application
+type TodoHandler struct {
+	todo db.TodoDB
+}
+
+// NewTodoHandler will return a new TodoHandler, specifying the type
+// of backend (database) to use, via. the db input parameter
+func NewTodoHandler(db db.TodoDB) *TodoHandler {
+	return &TodoHandler{
+		todo: db,
+	}
+}
+
 // GetTodoListHandler returns all current todo items
-func GetTodoListHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, todo.Get())
+func (handler *TodoHandler) GetTodoListHandler(c *gin.Context) {
+	// get user
+	c.JSON(http.StatusOK, handler.todo.Get("lja"))
 }
 
 // AddTodoHandler adds a new todo to the todo list
-func AddTodoHandler(c *gin.Context) {
+func (handler *TodoHandler) AddTodoHandler(c *gin.Context) {
 	todoItem, statusCode, err := convertHTTPBodyToTodo(c.Request.Body)
 	if err != nil {
 		c.JSON(statusCode, err)
 		return
 	}
-	c.JSON(statusCode, gin.H{"id": todo.Add(todoItem.Message)})
+	t, err := handler.todo.Add(todoItem)
+	if err != nil {
+		c.JSON(statusCode, err)
+	}
+	c.JSON(statusCode, gin.H{"id": t})
 }
 
 // DeleteTodoHandler will delete a specified todo based on user http input
-func DeleteTodoHandler(c *gin.Context) {
+func (handler *TodoHandler) DeleteTodoHandler(c *gin.Context) {
 	todoID := c.Param("id")
-	if err := todo.Delete(todoID); err != nil {
+	if err := handler.todo.Delete(todoID); err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
@@ -36,13 +55,13 @@ func DeleteTodoHandler(c *gin.Context) {
 }
 
 // CompleteTodoHandler will complete a specified todo based on user http input
-func CompleteTodoHandler(c *gin.Context) {
+func (handler *TodoHandler) CompleteTodoHandler(c *gin.Context) {
 	todoItem, statusCode, err := convertHTTPBodyToTodo(c.Request.Body)
 	if err != nil {
 		c.JSON(statusCode, err)
 		return
 	}
-	if todo.Complete(todoItem.ID) != nil {
+	if handler.todo.Complete(todoItem.UUID) != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}

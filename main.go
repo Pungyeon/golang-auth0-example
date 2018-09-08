@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	jose "gopkg.in/square/go-jose.v2"
 
+	"github.com/Pungyeon/golang-auth0-example/db"
 	"github.com/Pungyeon/golang-auth0-example/handlers"
 )
 
@@ -21,11 +23,31 @@ import (
  */
 
 var (
-	audience string
-	domain   string
+	audience    string
+	domain      string
+	todoHandler *handlers.TodoHandler
 )
 
 func main() {
+	backend := flag.String("db", "memory", "specify which backend to use for our todo ap: ('memory' | 'postgres')")
+	config := flag.String("config", "config.json", "specify the relative filepath of the config to use for the postgres db connecdtion")
+	flag.Parse()
+
+	switch *backend {
+	case "memory":
+		todoHandler = handlers.NewTodoHandler(
+			db.NewInMemoryDB(),
+		)
+	case "postgres":
+		pqConfig, err := db.ReadPostgreConfig(*config)
+		if err != nil {
+			panic(err)
+		}
+		todoHandler = handlers.NewTodoHandler(
+			db.NewPostgreTodoDB(pqConfig),
+		)
+	}
+
 	setAuth0Variables()
 	r := gin.Default()
 
@@ -42,10 +64,10 @@ func main() {
 
 	authorized := r.Group("/")
 	authorized.Use(authRequired())
-	authorized.GET("/todo", handlers.GetTodoListHandler)
-	authorized.POST("/todo", handlers.AddTodoHandler)
-	authorized.DELETE("/todo/:id", handlers.DeleteTodoHandler)
-	authorized.PUT("/todo", handlers.CompleteTodoHandler)
+	authorized.GET("/todo", todoHandler.GetTodoListHandler)
+	authorized.POST("/todo", todoHandler.AddTodoHandler)
+	authorized.DELETE("/todo/:id", todoHandler.DeleteTodoHandler)
+	authorized.PUT("/todo", todoHandler.CompleteTodoHandler)
 
 	err := r.Run(":3000")
 	if err != nil {
