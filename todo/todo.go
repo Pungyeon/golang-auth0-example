@@ -14,10 +14,11 @@ type Todo struct {
 }
 
 // New returns a new todo
-func New(msg string) Todo {
+func New(msg string, username string) Todo {
 	return Todo{
 		UUID:     xid.New().String(),
 		Title:    msg,
 		Complete: false,
+		Username: username,
 	}
 }

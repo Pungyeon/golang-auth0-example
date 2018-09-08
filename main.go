@@ -11,6 +11,7 @@ import (
 	"github.com/auth0-community/auth0"
 	"github.com/gin-gonic/gin"
 	jose "gopkg.in/square/go-jose.v2"
+	jwt "gopkg.in/square/go-jose.v2/jwt"
 
 	"github.com/Pungyeon/golang-auth0-example/db"
 	"github.com/Pungyeon/golang-auth0-example/handlers"
@@ -29,6 +30,8 @@ var (
 )
 
 func main() {
+	auth0Audience := flag.String("audience", "", "specify client id for connecting to auth0")
+	auth0Domain := flag.String("domain", "", "specify the domain for connecting to auth0")
 	backend := flag.String("db", "memory", "specify which backend to use for our todo ap: ('memory' | 'postgres')")
 	config := flag.String("config", "config.json", "specify the relative filepath of the config to use for the postgres db connecdtion")
 	flag.Parse()
@@ -48,7 +51,7 @@ func main() {
 		)
 	}
 
-	setAuth0Variables()
+	setAuth0Variables(*auth0Audience, *auth0Domain)
 	r := gin.Default()
 
 	// This will ensure that the angular files are served correctly
@@ -75,21 +78,31 @@ func main() {
 	}
 }
 
-func setAuth0Variables() {
-	audience = os.Getenv("AUTH0_CLIENT_ID")
-	domain = os.Getenv("AUTH0_DOMAIN")
+func setAuth0Variables(aud string, dom string) {
+	audience = aud
+	domain = dom
+
+	if aud == "" {
+		log.Println("Audience not detect from CLI parameters, attempting to retrieve from ENV variables")
+		audience = os.Getenv("AUTH0_CLIENT_ID")
+	}
+	if dom == "" {
+		log.Println("Domain not detect from CLI parameters, attempting to retrieve from ENV variables")
+		domain = os.Getenv("AUTH0_DOMAIN")
+	}
 }
 
 // ValidateRequest will verify that a token received from an http request
 // is valid and signy by authority
 func authRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: domain + ".well-known/jwks.json"}, nil)
 		configuration := auth0.NewConfiguration(client, []string{audience}, domain, jose.RS256)
 		validator := auth0.NewValidator(configuration, nil)
+		token, err := validator.ValidateRequest(c.Request)
 
-		_, err := validator.ValidateRequest(c.Request)
+		var claims jwt.Claims
+		token.Claims()
 
 		if err != nil {
 			log.Println(err)
