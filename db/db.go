@@ -9,6 +9,6 @@ type TodoDB interface {
 	Get(user string) []todo.Todo
 	Add(t todo.Todo) (string, error)
 	// Put(t todo.Todo) error // Maybe use this instead of complete?
-	Complete(id string) error
-	Delete(id string) error
+	Complete(id string, username string) error
+	Delete(id string, username string) error
 }

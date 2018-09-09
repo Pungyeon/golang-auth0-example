@@ -3,14 +3,11 @@ package main
 import (
 	"flag"
 	"log"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 
-	"github.com/auth0-community/auth0"
 	"github.com/gin-gonic/gin"
-	jose "gopkg.in/square/go-jose.v2"
 
 	"github.com/Pungyeon/golang-auth0-example/db"
 	"github.com/Pungyeon/golang-auth0-example/handlers"
@@ -23,8 +20,6 @@ import (
  */
 
 var (
-	audience    string
-	domain      string
 	todoHandler *handlers.TodoHandler
 )
 
@@ -49,8 +44,6 @@ func main() {
 			db.NewPostgreTodoDB(pqConfig),
 		)
 	}
-
-	setAuth0Variables(*auth0Audience, *auth0Domain)
 	r := gin.Default()
 
 	// This will ensure that the angular files are served correctly
@@ -64,8 +57,12 @@ func main() {
 		}
 	})
 
+	authHandler := handlers.NewAuthHandler(
+		DetermineAuth0Variables(*auth0Audience, *auth0Domain),
+	)
+
 	authorized := r.Group("/")
-	authorized.Use(authRequired())
+	authorized.Use(authHandler.Required())
 	authorized.GET("/todo", todoHandler.GetTodoListHandler)
 	authorized.POST("/todo", todoHandler.AddTodoHandler)
 	authorized.DELETE("/todo/:id", todoHandler.DeleteTodoHandler)
@@ -77,52 +74,16 @@ func main() {
 	}
 }
 
-func setAuth0Variables(aud string, dom string) {
-	audience = aud
-	domain = dom
-
-	if aud == "" {
+// DetermineAuth0Variables will set the domain and audience values, based on CLI input
+// and if this input is empty, will try to retrieve these values from environment variables
+func DetermineAuth0Variables(audience string, domain string) (string, string) {
+	if audience == "" {
 		log.Println("Audience not detect from CLI parameters, attempting to retrieve from ENV variables")
 		audience = os.Getenv("AUTH0_CLIENT_ID")
 	}
-	if dom == "" {
+	if domain == "" {
 		log.Println("Domain not detect from CLI parameters, attempting to retrieve from ENV variables")
 		domain = os.Getenv("AUTH0_DOMAIN")
 	}
-}
-
-// ValidateRequest will verify that a token received from an http request
-// is valid and signy by authority
-func authRequired() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: domain + ".well-known/jwks.json"}, nil)
-		configuration := auth0.NewConfiguration(client, []string{audience}, domain, jose.RS256)
-		validator := auth0.NewValidator(configuration, nil)
-		_, err := validator.ValidateRequest(c.Request)
-
-		/* THIS SHOULD WORK, but is not very pretty
-		token, err := jwt.ParseSigned("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
-		if err != nil {
-			panic(err)
-		}
-		claims := jwt.Claims{}
-		err = validator.Claims(req, token, claims)
-		if err != nil {
-			log.Println("Validator.Claims failed with message: ")
-			panic(err)
-		}
-		fmt.Println(claims.Subject) */
-
-		if err != nil {
-			log.Println(err)
-			terminateWithError(http.StatusUnauthorized, "token is not valid", c)
-			return
-		}
-		c.Next()
-	}
-}
-
-func terminateWithError(statusCode int, message string, c *gin.Context) {
-	c.JSON(statusCode, gin.H{"error": message})
-	c.Abort()
+	return audience, domain
 }

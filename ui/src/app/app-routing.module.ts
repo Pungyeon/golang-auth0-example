@@ -8,7 +8,7 @@ import { TodoComponent } from "./todo/todo.component";
 const routes: Routes = [
     { path: '', redirectTo: 'home', pathMatch: 'full' },
     { path: 'home', component: HomeComponent },
-    { path: 'todo', component: TodoComponent,  canActivate: [AuthGuardService] },
+    { path: 'todolist', component: TodoComponent,  canActivate: [AuthGuardService] },
     { path: 'callback', component: CallbackComponent }
   ];
   

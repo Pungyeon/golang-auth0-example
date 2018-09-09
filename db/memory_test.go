@@ -22,12 +22,12 @@ func TestDeleteTodo(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = todos.Delete(id)
+	err = todos.Delete(id, todo.Username)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if l, err := todos.findTodoLocation(id); err == nil {
+	if l, err := todos.findTodoLocation(id, todo.Username); err == nil {
 		t.Errorf("todo not deleted, still able to find via. id: %d", l)
 	}
 }
@@ -39,9 +39,9 @@ func TestCompleteTodo(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	todos.Complete(id)
+	todos.Complete(id, todo.Username)
 
-	location, err := todos.findTodoLocation(id)
+	location, err := todos.findTodoLocation(id, todo.Username)
 	if err != nil {
 		t.Error(err)
 	}
@@ -67,14 +67,14 @@ func TestGetTodos(t *testing.T) {
 
 func TestDeleteFailure(t *testing.T) {
 	todos := NewInMemoryDB()
-	if todos.Delete("lakjsdfl") == nil {
+	if todos.Delete("lakjsdfl", "lja") == nil {
 		t.Error("deletion of non-existent item, did not return 404 error")
 	}
 }
 
 func TestCompleteFailure(t *testing.T) {
 	todos := NewInMemoryDB()
-	if todos.Complete("lakjsdfl") == nil {
+	if todos.Complete("lakjsdfl", "lja") == nil {
 		t.Error("completion of non-existent item, did not return 404 error")
 	}
 }

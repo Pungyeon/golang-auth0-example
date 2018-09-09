@@ -43,8 +43,8 @@ func (db *InMemoryDB) Add(t todo.Todo) (string, error) {
 }
 
 // Delete will remove a Todo from the Todo list
-func (db *InMemoryDB) Delete(id string) error {
-	location, err := db.findTodoLocation(id)
+func (db *InMemoryDB) Delete(id string, username string) error {
+	location, err := db.findTodoLocation(id, username)
 	if err != nil {
 		return err
 	}
@@ -54,8 +54,8 @@ func (db *InMemoryDB) Delete(id string) error {
 
 // Complete will set the complete boolean to true, marking a todo as
 // completed
-func (db *InMemoryDB) Complete(id string) error {
-	location, err := db.findTodoLocation(id)
+func (db *InMemoryDB) Complete(id string, username string) error {
+	location, err := db.findTodoLocation(id, username)
 	if err != nil {
 		return err
 	}
@@ -63,18 +63,18 @@ func (db *InMemoryDB) Complete(id string) error {
 	return nil
 }
 
-func (db *InMemoryDB) findTodoLocation(id string) (int, error) {
+func (db *InMemoryDB) findTodoLocation(id string, username string) (int, error) {
 	db.mtx.RLock()
 	defer db.mtx.RUnlock()
 	for i, t := range db.list {
-		if isMatchingID(t.UUID, id) {
+		if isMatching(t.UUID, id) && isMatching(t.Username, username) {
 			return i, nil
 		}
 	}
-	return 0, errors.New("could not find todo based on id")
+	return 0, errors.New("could not find todo based on id and username")
 }
 
-func isMatchingID(a string, b string) bool {
+func isMatching(a string, b string) bool {
 	return a == b
 }
 

@@ -115,18 +115,18 @@ func (pq *PostgreTodoDB) Put(t todo.Todo) error {
 }
 
 // Complete will complete a todo specified by id
-func (pq *PostgreTodoDB) Complete(id string) error {
-	stmt, err := pq.connection.Prepare("UPDATE todo SET completed=$1 where uid=$2")
+func (pq *PostgreTodoDB) Complete(id string, username string) error {
+	stmt, err := pq.connection.Prepare("UPDATE todo SET completed=$1 where uid=$2 AND username=$3")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(true, id)
+	_, err = stmt.Exec(true, id, username)
 	return err
 }
 
 // Delete removes a todo from a Postgre database
-func (pq *PostgreTodoDB) Delete(id string) error {
-	_, err := pq.connection.Exec("DELETE FROM todo WHERE uid=$1", id)
+func (pq *PostgreTodoDB) Delete(id string, username string) error {
+	_, err := pq.connection.Exec("DELETE FROM todo WHERE uid=$1 AND username=$2", id, username)
 	if err != nil {
 		return err
 	}
