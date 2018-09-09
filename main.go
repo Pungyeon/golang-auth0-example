@@ -63,6 +63,7 @@ func main() {
 
 	authorized := r.Group("/")
 	authorized.Use(authHandler.Required())
+
 	authorized.GET("/todo", todoHandler.GetTodoListHandler)
 	authorized.POST("/todo", todoHandler.AddTodoHandler)
 	authorized.DELETE("/todo/:id", todoHandler.DeleteTodoHandler)

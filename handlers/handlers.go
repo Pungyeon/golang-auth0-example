@@ -56,12 +56,12 @@ func (handler *TodoHandler) AddTodoHandler(c *gin.Context) {
 		c.JSON(statusCode, err)
 		return
 	}
-	todoItem.Username = username
-	t, err := handler.todo.Add(todoItem)
+	t := todo.New(todoItem.Title, username)
+	id, err := handler.todo.Add(t)
 	if err != nil {
 		c.JSON(statusCode, err)
 	}
-	c.JSON(statusCode, gin.H{"id": t})
+	c.JSON(statusCode, gin.H{"id": id})
 }
 
 // DeleteTodoHandler will delete a specified todo based on user http input

@@ -9,9 +9,15 @@ import (
 func TestAddTodo(t *testing.T) {
 	todos := NewInMemoryDB()
 	todo := todo.New("i am a new todo", "lja")
-	todos.Add(todo)
+	id, err := todos.Add(todo)
+	if err != nil {
+		t.Error(err)
+	}
 	if len(todos.list) != 1 {
 		t.Error("add does not add another todo message to the list")
+	}
+	if id == "" {
+		t.Error("id must not be empty")
 	}
 }
 
