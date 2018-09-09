@@ -21,7 +21,10 @@ export class TodoComponent implements OnInit {
 
   getAll() {
     this.todoService.getTodoList().subscribe((data: Todo[]) => {
-      console.log(data);
+      if (data == null || data.length == 0) {
+        this.activeTodos = [];
+        this.completedTodos = [];
+      }
       this.activeTodos = data.filter((a) => !a.complete);
       this.completedTodos = data.filter((a) => a.complete);
     });

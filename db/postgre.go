@@ -23,7 +23,7 @@ func NewPostgreTodoDB(config PostgreConfig) *PostgreTodoDB {
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.DBHost, config.DBPort, config.DBUser, config.DBPassword, config.DBName,
 	)
-	sqlConnection, err := sql.Open("Postgre", connectionString)
+	sqlConnection, err := sql.Open("postgres", connectionString)
 
 	if err != nil {
 		panic(err)
@@ -35,11 +35,11 @@ func NewPostgreTodoDB(config PostgreConfig) *PostgreTodoDB {
 
 // PostgreConfig holds the configuration for a Postgre connection
 type PostgreConfig struct {
-	DBHost     string
-	DBPort     int
-	DBUser     string
-	DBPassword string
-	DBName     string
+	DBHost     string `json:"host"`
+	DBPort     int    `json:"port"`
+	DBUser     string `json:"user"`
+	DBPassword string `json:"password"`
+	DBName     string `json:"db_name"`
 }
 
 // ReadPostgreConfig will attempt to read a config file based on the
@@ -49,33 +49,30 @@ func ReadPostgreConfig(filepath string) (PostgreConfig, error) {
 	if err != nil {
 		return PostgreConfig{}, err
 	}
-
 	var config PostgreConfig
 	err = json.Unmarshal(data, &config)
 	if err != nil {
 		return PostgreConfig{}, err
 	}
-
 	return config, nil
 }
 
-// Get returns a todo from a Postgre database
-/* func (pq *PostgreTodoDB) Get(id int) todo.Todo {
+// GetByID returns a todo from a Postgre database retrieving the todo via. its UUID
+func (pq *PostgreTodoDB) GetByID(id string) todo.Todo {
 	var t todo.Todo
-	row := pq.connection.QueryRow(`SELECT * FROM todo WHERE uid=$1`, id)
-	err := row.Scan(&t.UUID, &t.Title, &t.Description, &t.Username, &t.Completed)
+	row := pq.connection.QueryRow(`SELECT * FROM todos WHERE uuid=$1`, id)
+	err := row.Scan(&t.UUID, &t.Title, &t.Description, &t.Username, &t.Complete)
 	if err != nil {
 		log.Println(err)
 		return t
 	}
 	return t
-
-} */
+}
 
 // Get will return all todos which are tied to a specified user
 func (pq *PostgreTodoDB) Get(user string) []todo.Todo {
 	var todos []todo.Todo
-	rows, err := pq.connection.Query("SELECT * FROM todo WHERE username=$1", user)
+	rows, err := pq.connection.Query("SELECT * FROM todos WHERE username=$1", user)
 	if err != nil {
 		log.Println(err)
 		return []todo.Todo{}
@@ -93,30 +90,23 @@ func (pq *PostgreTodoDB) Get(user string) []todo.Todo {
 
 // Add a todo into a Postgre database
 func (pq *PostgreTodoDB) Add(t todo.Todo) (string, error) {
-	stmt, err := pq.connection.Prepare(`INSERT INTO todo(title, description, username, completed) VALUES($1,$2,$3,$4) returning uid;`)
+	stmt, err := pq.connection.Prepare(`INSERT INTO todos(uuid, title, description, username, completed) VALUES($1,$2,$3,$4,$5) returning uuid;`)
 	if err != nil {
 		return "", err
 	}
-	var uid int
-	stmt.QueryRow(
-		t.Title, t.Description, t.Username, t.Complete,
-	).Scan(&uid)
-	return string(uid), err
-}
-
-// Put edits a todo in a Postgre database
-func (pq *PostgreTodoDB) Put(t todo.Todo) error {
-	stmt, err := pq.connection.Prepare("UPDATE todo SET title=$1 description=$2 completed=$3 where uid=$4")
+	var uuid string
+	err = stmt.QueryRow(
+		t.UUID, t.Title, t.Description, t.Username, t.Complete,
+	).Scan(&uuid)
 	if err != nil {
-		return err
+		return "", err
 	}
-	_, err = stmt.Exec(t.Title, t.Description, t.Complete, t.UUID)
-	return err
+	return string(uuid), err
 }
 
 // Complete will complete a todo specified by id
 func (pq *PostgreTodoDB) Complete(id string, username string) error {
-	stmt, err := pq.connection.Prepare("UPDATE todo SET completed=$1 where uid=$2 AND username=$3")
+	stmt, err := pq.connection.Prepare("UPDATE todos SET completed=$1 where uuid=$2 AND username=$3")
 	if err != nil {
 		return err
 	}
@@ -126,7 +116,7 @@ func (pq *PostgreTodoDB) Complete(id string, username string) error {
 
 // Delete removes a todo from a Postgre database
 func (pq *PostgreTodoDB) Delete(id string, username string) error {
-	_, err := pq.connection.Exec("DELETE FROM todo WHERE uid=$1 AND username=$2", id, username)
+	_, err := pq.connection.Exec("DELETE FROM todos WHERE uuid=$1 AND username=$2", id, username)
 	if err != nil {
 		return err
 	}

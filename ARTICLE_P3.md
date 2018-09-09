@@ -11,6 +11,21 @@ Personally, I am using docker to run this database on my development machine. I 
 * PostgreSQL: https://www.postgresql.org/download/
 * PgAdmin: https://www.pgadmin.org/download/
 
+To prepare the database and table, use the following SQL queries:
+
+```sql
+CREATE DATABASE test
+
+CREATE TABLE todos (
+    uuid character varying(100) NOT NULL,
+    title character varying(100) NOT NULL,
+    description character varying(100) NOT NULL,
+    username character varying(100) NOT NULL,
+    completed BOOLEAN NOT NULL,
+    CONSTRAINT userinfo_pkey PRIMARY KEY (uuid)
+)
+WITH (OIDS=FALSE)
+```
 
 ## Dependency Injection
 // Explain dependency injection
