@@ -376,25 +376,101 @@ func convertJSONBodyToTodo(jsonBody []byte) (todo.Todo, int, error) {
 ```
 
 // explain code 
+...
+ Notice that we are getting a `username` from our header, which doesn't actually exist on our requests. Don't worry, we will get back to that in just a few lines!
+...
 
-So that's great, but now our `main.go` file is broken! Time to fix that as well:
+Alright, so back to the `username` header... Previously in our main.go we have a function `authRequired` which would validate and authenticate incoming requests based on their attached JWT token. We are going to move this function into a handler, just like we have with our TodoHandler. So, let's make a new file in our `handlers` folder and call it `auth.go`.
+
+```go
+package handlers
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/auth0-community/auth0"
+	"github.com/gin-gonic/gin"
+	jose "gopkg.in/square/go-jose.v2"
+	jwt "gopkg.in/square/go-jose.v2/jwt"
+)
+
+// AuthHandler is a endpoint handler for checking validity of JWT tokens
+type AuthHandler struct {
+	validator *auth0.JWTValidator
+}
+
+// NewAuthHandler will return an AuthHandler initialising a JWT validator in the process
+func NewAuthHandler(domain string, audience string) *AuthHandler {
+	client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: domain + ".well-known/jwks.json"}, nil)
+	configuration := auth0.NewConfiguration(client, []string{audience}, domain, jose.RS256)
+
+	return &AuthHandler{
+		validator: auth0.NewValidator(configuration, nil),
+	}
+}
+
+// Required will verify that a token received from an http request
+// is valid and signy by authority
+func (handler *AuthHandler) Required() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		token, err := handler.validator.ValidateRequest(c.Request)
+		if err != nil {
+			log.Println(err)
+			terminateWithError(http.StatusUnauthorized, "token is not valid", c)
+			return
+		}
+		claims := jwt.Claims{}
+		err = handler.validator.Claims(c.Request, token, &claims)
+		if err != nil {
+			terminateWithError(http.StatusUnauthorized, "could not retrieve subject from claim", c)
+			return
+		}
+		c.Request.Header.Add("username", claims.Subject)
+		c.Next()
+	}
+}
+
+func terminateWithError(statusCode int, message string, c *gin.Context) {
+	c.JSON(statusCode, gin.H{"error": message})
+	c.Abort()
+}
+```
+
+Not only does removing this from our `main.go` file, make our code cleaner, we have made our code a little more efficient. Notice, that we are only initialising a validator once on initialisation, rather than on every single request. Good stuff. Another big change is that we are now also retrieving the subject from our JWT token. Why are we doing this? Well, here is the definition of the subject, from the JWT RFC (7519):
+
+```
+ 4.1.2.  "sub" (Subject) Claim
+
+   The "sub" (subject) claim identifies the principal that is the
+   subject of the JWT.  The claims in a JWT are normally statements
+   about the subject.  The subject value MUST either be scoped to be
+   locally unique in the context of the issuer or be globally unique.
+   The processing of this claim is generally application specific.  The
+   "sub" value is a case-sensitive string containing a StringOrURI
+   value.  Use of this claim is OPTIONAL.
+```
+
+Right... so what does that mean? In very simplified terms, this means that this is an optional value to set in your JWT token, but if set this claim (property) must be unique. Even more simplified, this value is typically used as a unique identifier and is very suitable as a username. Sometimes, the value in the subject claim is typically a user e-mail (as these are by nature globally unique). Cool! So that means that we can extract the username from our JWT token, or at least a unique identifier of our users. Neat!
+
+Once we have retrieved this, we then add our user identifier as a header. There are others way to do this, but to simplify our code, this is the chosen method. This means, that we will be able to retrieve the username at a later stage in our handler chain (just like we are doing in our `TodoHandler`).
+
+Now, our `main.go` file is totally broken. But, actually, fixing this is not too bad:
 
 ```go
 package main
 
 import (
+	"flag"
 	"log"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
 
-	"github.com/auth0-community/auth0"
 	"github.com/gin-gonic/gin"
-	jose "gopkg.in/square/go-jose.v2"
 
-	"github.com/Pungyeon/golang-auth0-example/handlers"
 	"github.com/Pungyeon/golang-auth0-example/db"
+	"github.com/Pungyeon/golang-auth0-example/handlers"
 )
 
 /* USAGE:
@@ -404,28 +480,30 @@ import (
  */
 
 var (
-	audience string
-	domain   string
-	todoHandler handlers.TodoHandler
+	todoHandler *handlers.TodoHandler
 )
 
 func main() {
-	backend := flag.String("db", "memory", "specify which backend to use for our todo ap: ('memory' | 'postgres')"
+	auth0Audience := flag.String("audience", "", "specify client id for connecting to auth0")
+	auth0Domain := flag.String("domain", "", "specify the domain for connecting to auth0")
+	backend := flag.String("db", "memory", "specify which backend to use for our todo ap: ('memory' | 'postgres')")
 	config := flag.String("config", "config.json", "specify the relative filepath of the config to use for the postgres db connecdtion")
 	flag.Parse()
 
 	switch *backend {
 	case "memory":
-		todoHandler = db.NewInMemoryDB()
+		todoHandler = handlers.NewTodoHandler(
+			db.NewInMemoryDB(),
+		)
 	case "postgres":
-		config, err := db.ReadPostgreconfig(*config)
+		pqConfig, err := db.ReadPostgreConfig(*config)
 		if err != nil {
-			panci(err)
+			panic(err)
 		}
-		todoHandler = db.NewPostgreTodoDB()
+		todoHandler = handlers.NewTodoHandler(
+			db.NewPostgreTodoDB(pqConfig),
+		)
 	}
-
-	setAuth0Variables()
 	r := gin.Default()
 
 	// This will ensure that the angular files are served correctly
@@ -439,12 +517,16 @@ func main() {
 		}
 	})
 
+	authHandler := handlers.NewAuthHandler(
+		DetermineAuth0Variables(*auth0Audience, *auth0Domain),
+	)
+
 	authorized := r.Group("/")
-	authorized.Use(authRequired())
+	authorized.Use(authHandler.Required())
 	authorized.GET("/todo", todoHandler.GetTodoListHandler)
 	authorized.POST("/todo", todoHandler.AddTodoHandler)
 	authorized.DELETE("/todo/:id", todoHandler.DeleteTodoHandler)
-	authorized.PUT("/todo", handtodoHandlerlers.CompleteTodoHandler)
+	authorized.PUT("/todo", todoHandler.CompleteTodoHandler)
 
 	err := r.Run(":3000")
 	if err != nil {
@@ -452,34 +534,18 @@ func main() {
 	}
 }
 
-func setAuth0Variables() {
-	audience = os.Getenv("AUTH0_CLIENT_ID")
-	domain = os.Getenv("AUTH0_DOMAIN")
-}
-
-// ValidateRequest will verify that a token received from an http request
-// is valid and signy by authority
-func authRequired() gin.HandlerFunc {
-	return func(c *gin.Context) {
-
-		client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: domain + ".well-known/jwks.json"}, nil)
-		configuration := auth0.NewConfiguration(client, []string{audience}, domain, jose.RS256)
-		validator := auth0.NewValidator(configuration, nil)
-
-		_, err := validator.ValidateRequest(c.Request)
-
-		if err != nil {
-			log.Println(err)
-			terminateWithError(http.StatusUnauthorized, "token is not valid", c)
-			return
-		}
-		c.Next()
+// DetermineAuth0Variables will set the domain and audience values, based on CLI input
+// and if this input is empty, will try to retrieve these values from environment variables
+func DetermineAuth0Variables(audience string, domain string) (string, string) {
+	if audience == "" {
+		log.Println("Audience not detect from CLI parameters, attempting to retrieve from ENV variables")
+		audience = os.Getenv("AUTH0_CLIENT_ID")
 	}
-}
-
-func terminateWithError(statusCode int, message string, c *gin.Context) {
-	c.JSON(statusCode, gin.H{"error": message})
-	c.Abort()
+	if domain == "" {
+		log.Println("Domain not detect from CLI parameters, attempting to retrieve from ENV variables")
+		domain = os.Getenv("AUTH0_DOMAIN")
+	}
+	return audience, domain
 }
 ```
 

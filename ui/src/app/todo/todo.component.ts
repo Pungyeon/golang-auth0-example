@@ -10,7 +10,8 @@ export class TodoComponent implements OnInit {
 
   activeTodos: Todo[];
   completedTodos: Todo[]
-  todoMessage: string;
+  todoTitle: string;
+  todoDescription: string;
 
   constructor(private todoService: TodoService) { }
 
@@ -28,14 +29,16 @@ export class TodoComponent implements OnInit {
 
   addTodo() {
     var newTodo : Todo = {
-      title: this.todoMessage,
+      title: this.todoTitle,
+      description: this.todoDescription,
       id: '',
       username: '',
       complete: false
     }
     this.todoService.addTodo(newTodo).subscribe(() => {
       this.getAll();
-      this.todoMessage = '';
+      this.todoTitle = '';
+      this.todoDescription = '';
     });
   }
 
