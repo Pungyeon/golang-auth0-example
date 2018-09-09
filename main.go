@@ -11,7 +11,6 @@ import (
 	"github.com/auth0-community/auth0"
 	"github.com/gin-gonic/gin"
 	jose "gopkg.in/square/go-jose.v2"
-	jwt "gopkg.in/square/go-jose.v2/jwt"
 
 	"github.com/Pungyeon/golang-auth0-example/db"
 	"github.com/Pungyeon/golang-auth0-example/handlers"
@@ -99,10 +98,20 @@ func authRequired() gin.HandlerFunc {
 		client := auth0.NewJWKClient(auth0.JWKClientOptions{URI: domain + ".well-known/jwks.json"}, nil)
 		configuration := auth0.NewConfiguration(client, []string{audience}, domain, jose.RS256)
 		validator := auth0.NewValidator(configuration, nil)
-		token, err := validator.ValidateRequest(c.Request)
+		_, err := validator.ValidateRequest(c.Request)
 
-		var claims jwt.Claims
-		token.Claims()
+		/* THIS SHOULD WORK, but is not very pretty
+		token, err := jwt.ParseSigned("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
+		if err != nil {
+			panic(err)
+		}
+		claims := jwt.Claims{}
+		err = validator.Claims(req, token, claims)
+		if err != nil {
+			log.Println("Validator.Claims failed with message: ")
+			panic(err)
+		}
+		fmt.Println(claims.Subject) */
 
 		if err != nil {
 			log.Println(err)
