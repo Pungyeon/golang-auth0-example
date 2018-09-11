@@ -83,7 +83,7 @@ func DetermineAuth0Variables(audience string, domain string) (string, string) {
 		audience = os.Getenv("AUTH0_CLIENT_ID")
 	}
 	if domain == "" {
-		log.Println("Domain not detect from CLI parameters, attempting to retrieve from ENV variables")
+		log.Println("Domain not detected from CLI parameters, attempting to retrieve from ENV variables")
 		domain = os.Getenv("AUTH0_DOMAIN")
 	}
 	return audience, domain
