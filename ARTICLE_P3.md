@@ -6,16 +6,14 @@ We are going to be using a PostgreSQL as a database. The first thing that we wil
 * Database: todo
 * Table: todos
 
-Personally, I am using docker to run this database on my development machine. I have added a `Dockerfile` which will build the PostgreSQL database and ensure that both databse and table are present. You can also run the official PostgreSQL docker image (or a non-docker deployment) and use pgAdmin (which has a GUI) to ensure that both database and table are created. To download PostgreSQL and pgAdmin:
+Personally, I am using docker to run this database on my development machine. I have added a `Dockerfile` which will build the PostgreSQL database and ensure that the expected `todos` table is present. You can also run the official PostgreSQL docker image (or a non-docker deployment) and use pgAdmin (which has a GUI) to ensure that both database and table are created. To download PostgreSQL and pgAdmin:
 
 * PostgreSQL: https://www.postgresql.org/download/
 * PgAdmin: https://www.pgadmin.org/download/
 
-To prepare the database and table, use the following SQL queries:
+To prepare the database table, use the following SQL queries:
 
 ```sql
-CREATE DATABASE test
-
 CREATE TABLE todos (
     uuid character varying(100) NOT NULL,
     title character varying(100) NOT NULL,
@@ -563,6 +561,10 @@ func DetermineAuth0Variables(audience string, domain string) (string, string) {
 	return audience, domain
 }
 ```
+
+// explain code
+
+So, now we have everything that we need.
 
 
 
