@@ -14,17 +14,14 @@ func TestAddAndGetHandler(t *testing.T) {
 	todoHandler := NewTodoHandler(
 		db.NewInMemoryDB(),
 	)
-	/*
-		td := todo.New("this is a test", "lja")
-		data, _ := json.Marshal(td)
-	*/
-	r := gin.Default()
+	r := gin.New()
 	r.GET("/todo", todoHandler.GetTodoListHandler)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/todo", nil)
+	req.Header.Add("username", "lja")
 	r.ServeHTTP(w, req)
 
 	if w.Code != 200 {
-		t.Error("response from GET -> /todo was not 200, something went wrong")
+		t.Errorf("GET /todo -> Response[%d]", w.Code)
 	}
 }
